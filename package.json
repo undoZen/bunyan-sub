@@ -1,0 +1,33 @@
+{
+  "name": "bunyan-sub",
+  "version": "0.0.0",
+  "description": "subscribe bunyan log events from bunyan-hub",
+  "main": "cmd.js",
+  "files": [ "cmd.js" ],
+  "bin": {
+     "bunyan-sub": "cmd.js"
+  },
+  "dependencies": {
+    "destroy": "^1.0.3",
+    "dnode": "^1.2.0",
+    "nomnom": "^1.8.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/undoZen/bunyan-sub.git"
+  },
+  "keywords": [
+    "bunyan",
+    "log"
+  ],
+  "author": "undoZen <opensource@undozen.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/undoZen/bunyan-sub/issues"
+  },
+  "homepage": "https://github.com/undoZen/bunyan-sub"
+}
