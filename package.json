@@ -1,11 +1,13 @@
 {
   "name": "bunyan-sub",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "subscribe bunyan log events from bunyan-hub",
   "main": "cmd.js",
-  "files": [ "cmd.js" ],
+  "files": [
+    "cmd.js"
+  ],
   "bin": {
-     "bunyan-sub": "cmd.js"
+    "bunyan-sub": "cmd.js"
   },
   "dependencies": {
     "destroy": "^1.0.3",
