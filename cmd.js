@@ -8,7 +8,7 @@ var VERSION = require('./package.json').version;
 var opts = require("nomnom")
     .option('level', {
         abbr: 'l',
-        default: 30,
+        default: 'info',
         help: 'subscribed min level, default: INFO'
     })
     .option('history', {
@@ -30,6 +30,26 @@ var opts = require("nomnom")
         }
     })
     .parse();
+
+var levelFromName = {
+    'trace': 10,
+    'debug': 20,
+    'info': 30,
+    'warn': 40,
+    'error': 50,
+    'fatal': 60
+};
+
+if (!opts.level) {
+    opts.level = 30;
+} else if (!isNaN(Number(opts.level))) {
+    opts.level = ~~opts.level;
+    if ([10, 20, 30, 40, 50, 60].indexOf(opts.level) < 0) {
+        opts.level = 30;
+    }
+} else {
+    opts.level = levelFromName[opts.level.toString().toLowerCase()] || 30;
+}
 
 var d = dnode({
     log: function (rec) {
