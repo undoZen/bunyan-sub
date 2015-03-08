@@ -7,7 +7,8 @@
     "cmd.js"
   ],
   "bin": {
-    "bunyan-sub": "cmd.js"
+    "bunyan-sub": "cmd.js",
+    "bunyansub": "cmd.js"
   },
   "dependencies": {
     "destroy": "^1.0.3",
