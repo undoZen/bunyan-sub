@@ -5,31 +5,49 @@ var net = require('net');
 var dnode = require('dnode');
 var destroy = require('destroy');
 var VERSION = require('./package.json').version;
-var opts = require("nomnom")
-    .option('level', {
-        abbr: 'l',
-        default: 'info',
-        help: 'subscribed min level, default: INFO'
-    })
-    .option('history', {
-        abbr: 'H',
-        flag: true,
-        help: 'read history (last 1000 events)'
-    })
-    .option('time', {
-        abbr: 't',
-        default: 0,
-        help: 'read history starting from this timestamp'
-    })
-    .option('version', {
-        abbr: 'v',
-        flag: true,
-        help: 'print version and exit',
-        callback: function () {
-            return "version " + VERSION;
-        }
-    })
-    .parse();
+var BVERSION = require('bunyan/package.json').version;
+var spawn = require('child_process').spawn;
+var spawnSync = require('child_process').spawnSync;
+var bunyanCliPath = require.resolve('bunyan/bin/bunyan');
+var argv = process.argv.slice(2);
+if (argv.indexOf('--help') > -1 || argv.indexOf('-h') > -1) {
+    console.log('\nUsage: bunyansub [options]\n' +
+        '\n' +
+        'Options:\n' +
+        '   -l, --level     subscribed min level, default: TRACE  [trace]\n' +
+        '   -H, --history   read history (last 1000 events)\n' +
+        '   -t, --time      read history starting from this timestamp  [0]\n' +
+        '   -v, --version   print version and exit\n' +
+        '\n' +
+        'more options will be passed to a spawned bunyan cli process, used as following:' +
+        '\n'
+    );
+    var spawnResult = spawnSync(process.execPath, [bunyanCliPath, '-h'], {
+        cwd: process.cwd(),
+        env: process.env,
+    });
+    console.log(spawnResult.stdout.toString());
+    //console.error(spawnResult.stderr.toString());
+    process.exit(0);
+};
+if (argv.indexOf('--version') > -1 || argv.indexOf('-v') > -1) {
+    console.log('bunyan-sub version: ' + VERSION);
+    console.log('bunyan version: ' + BVERSION);
+    process.exit(0);
+};
+var index, history, time, level;
+if ((index = Math.max(argv.indexOf('--history'), argv.indexOf('-H'))) > -1) {
+    argv.splice(index, 1);
+    history = true;
+}
+if ((index = Math.max(argv.indexOf('--time'), argv.indexOf('-t'))) > -1) {
+    time = argv.splice(index, 2)[1];
+    time = time.match(/\d{13}/) ? ~~time :
+        void 0;
+}
+if ((index = Math.max(argv.indexOf('--level'), argv.indexOf('-l'))) > -1) {
+    level = argv.splice(index, 2)[1];
+}
 
 var levelFromName = {
     'trace': 10,
@@ -40,26 +58,38 @@ var levelFromName = {
     'fatal': 60
 };
 
-if (!opts.level) {
-    opts.level = 30;
-} else if (!isNaN(Number(opts.level))) {
-    opts.level = ~~opts.level;
-    if ([10, 20, 30, 40, 50, 60].indexOf(opts.level) < 0) {
-        opts.level = 30;
+if (!level) {
+    level = 10;
+} else if (!isNaN(Number(level))) {
+    level = ~~level;
+    if ([10, 20, 30, 40, 50, 60].indexOf(level) < 0) {
+        level = 10;
     }
 } else {
-    opts.level = levelFromName[opts.level.toString().toLowerCase()] || 30;
+    level = levelFromName[level.toString().toLowerCase()] || 10;
 }
+
+var log = (function () {
+    if (!argv.length) return console.log.bind(console);
+    var child = spawn(process.execPath, [bunyanCliPath].concat(argv), {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: ['pipe', process.stdout, process.stderr],
+    });
+    return function (json) {
+        child.stdin.write(json + '\n');
+    }
+}());
 
 var d = dnode({
     log: function (rec) {
-        console.log(JSON.stringify(rec));
+        log(JSON.stringify(rec));
     },
     getOptions: function (cb) {
         cb({
-            readHistory: opts.history,
-            historyStartTime: opts.time,
-            minLevel: opts.level,
+            readHistory: history,
+            historyStartTime: time,
+            minLevel: level,
         });
     }
 });
