@@ -2,14 +2,13 @@
 
 'use strict';
 var net = require('net');
-var dnode = require('dnode');
-var destroy = require('destroy');
 var VERSION = require('./package.json').version;
 var BVERSION = require('bunyan/package.json').version;
 var spawn = require('child_process').spawn;
 var spawnSync = require('child_process').spawnSync;
 var bunyanCliPath = require.resolve('bunyan/bin/bunyan');
 var PassThrough = require('stream').PassThrough;
+var SubStream = require('bunyan-sub-stream');
 
 var argv = process.argv.slice(2);
 if (argv.indexOf('--help') > -1 || argv.indexOf('-h') > -1) {
@@ -51,31 +50,8 @@ if ((index = Math.max(argv.indexOf('--level'), argv.indexOf('-l'))) > -1) {
     level = argv.splice(index, 2)[1];
 }
 
-var levelFromName = {
-    'trace': 10,
-    'debug': 20,
-    'info': 30,
-    'warn': 40,
-    'error': 50,
-    'fatal': 60
-};
-
-if (!level) {
-    level = 10;
-} else if (!isNaN(Number(level))) {
-    level = ~~level;
-    if ([10, 20, 30, 40, 50, 60].indexOf(level) < 0) {
-        level = 10;
-    }
-} else {
-    level = levelFromName[level.toString().toLowerCase()] || 10;
-}
-
 var pt = new PassThrough;
 
-function log(json) {
-    pt.write(json + '\n');
-};
 if (argv.length) {
     pt.pipe(spawn(process.execPath, [bunyanCliPath].concat(argv), {
         cwd: process.cwd(),
@@ -86,21 +62,7 @@ if (argv.length) {
     pt.pipe(process.stdout);
 }
 
-var d = dnode({
-    log: function (rec) {
-        log(JSON.stringify(rec));
-    },
-    getOptions: function (cb) {
-        cb({
-            readHistory: history,
-            historyStartTime: time,
-            minLevel: level,
-        });
-    }
-});
-d.on('error', console.error.bind(console, 'error'));
-d.connect(28692);
-d.on('end', function () {
-    d.end();
-    destroy(d);
-});
+(new SubStream({
+    level: level,
+    encoding: 'utf-8',
+})).pipe(pt);
