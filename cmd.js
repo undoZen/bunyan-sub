@@ -42,8 +42,9 @@ if ((index = Math.max(argv.indexOf('--history'), argv.indexOf('-H'))) > -1) {
     history = true;
 }
 if ((index = Math.max(argv.indexOf('--time'), argv.indexOf('-t'))) > -1) {
+    history = true;
     time = argv.splice(index, 2)[1];
-    time = time.match(/\d{13}/) ? ~~time :
+    time = time.match(/\d{13}/) ? parseInt(time, 10) :
         void 0;
 }
 if ((index = Math.max(argv.indexOf('--level'), argv.indexOf('-l'))) > -1) {
@@ -65,4 +66,6 @@ if (argv.length) {
 (new SubStream({
     level: level,
     encoding: 'utf-8',
+    history: history,
+    time: time,
 })).pipe(pt);
