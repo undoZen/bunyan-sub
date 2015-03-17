@@ -9,6 +9,8 @@ var BVERSION = require('bunyan/package.json').version;
 var spawn = require('child_process').spawn;
 var spawnSync = require('child_process').spawnSync;
 var bunyanCliPath = require.resolve('bunyan/bin/bunyan');
+var PassThrough = require('stream').PassThrough;
+
 var argv = process.argv.slice(2);
 if (argv.indexOf('--help') > -1 || argv.indexOf('-h') > -1) {
     console.log('\nUsage: bunyansub [options]\n' +
@@ -69,17 +71,20 @@ if (!level) {
     level = levelFromName[level.toString().toLowerCase()] || 10;
 }
 
-var log = (function () {
-    if (!argv.length) return console.log.bind(console);
-    var child = spawn(process.execPath, [bunyanCliPath].concat(argv), {
+var pt = new PassThrough;
+
+function log(json) {
+    pt.write(json + '\n');
+};
+if (argv.length) {
+    pt.pipe(spawn(process.execPath, [bunyanCliPath].concat(argv), {
         cwd: process.cwd(),
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr],
-    });
-    return function (json) {
-        child.stdin.write(json + '\n');
-    }
-}());
+    }).stdin);
+} else {
+    pt.pipe(process.stdout);
+}
 
 var d = dnode({
     log: function (rec) {
