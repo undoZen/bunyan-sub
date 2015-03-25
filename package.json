@@ -1,6 +1,6 @@
 {
   "name": "bunyan-sub",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "A CLI tool subscribes to bunyan-hub",
   "main": "cmd.js",
   "preferGlobal": true,
