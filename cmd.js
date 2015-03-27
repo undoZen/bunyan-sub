@@ -50,6 +50,17 @@ if ((index = Math.max(argv.indexOf('--time'), argv.indexOf('-t'))) > -1) {
 if ((index = Math.max(argv.indexOf('--level'), argv.indexOf('-l'))) > -1) {
     level = argv.splice(index, 2)[1];
 }
+var host = '127.0.0.1';
+if ((index = argv.indexOf('--host')) > -1) {
+    host = argv.splice(index, 2)[1];
+}
+var port = 28692;
+if ((index = Math.max(argv.indexOf('--port'), argv.indexOf('-p'))) > -1) {
+    var _port = parseInt(argv.splice(index, 2)[1], 10);
+    if (!isNaN(_port)) {
+        port = _port;
+    }
+}
 
 var pt = new PassThrough;
 
@@ -68,4 +79,6 @@ if (argv.length) {
     encoding: 'utf-8',
     history: history,
     time: time,
+    host: host,
+    port: port,
 })).pipe(pt);
